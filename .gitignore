@@ -1,0 +1,10 @@
+projects/compiler-rt
+projects/libcxx
+projects/libcxxabi
+projects/libunwind
+projects/openmp
+projects/test-suite
+tools/clang
+tools/lld
+tools/lldb
+tools/polly
