@@ -41,7 +41,7 @@ Compile :
   cd ..
   cd ..
   mkcd obfuscator.build
-  cmake -G "Unix Makefiles" ../llvm
+  cmake -G "Unix Makefiles" -DLLDB_CODESIGN_IDENTITY='' ../llvm
   make -j7
 
 
