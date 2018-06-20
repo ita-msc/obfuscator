@@ -13,7 +13,7 @@
 
 #include "llvm/Transforms/Obfuscation/Split.h"
 #include "llvm/Transforms/Obfuscation/Utils.h"
-#include "llvm/CryptoUtils.h"
+#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 
 #define DEBUG_TYPE "split"
 

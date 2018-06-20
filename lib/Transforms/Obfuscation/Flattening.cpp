@@ -13,7 +13,7 @@
 
 #include "llvm/Transforms/Obfuscation/Flattening.h"
 #include "llvm/Transforms/Scalar.h"
-#include "llvm/CryptoUtils.h"
+#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 
 #define DEBUG_TYPE "flattening"
 

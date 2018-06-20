@@ -43,7 +43,7 @@
 #include "llvm/Transforms/Obfuscation/Split.h"
 #include "llvm/Transforms/Obfuscation/Substitution.h"
 #include "llvm/Transforms/Obfuscation/StringObfuscation.h"
-#include "llvm/CryptoUtils.h"
+#include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 
 using namespace llvm;
 
