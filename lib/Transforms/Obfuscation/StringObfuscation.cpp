@@ -1,7 +1,9 @@
-#define DEBUG_TYPE "objdiv"
+#define DEBUG_TYPE "sobf"
+
 #include <string>
 #include <strstream>
 
+#include "llvm/Support/Debug.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Constants.h"
@@ -12,6 +14,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Obfuscation/CryptoUtils.h"
 #include "llvm/Transforms/Obfuscation/StringObfuscation.h"
+
 
 using namespace llvm;
 
@@ -41,18 +44,21 @@ namespace llvm {
             std::vector<GlobalVariable*> toDelConstGlob;
             //std::vector<GlobalVariable*> encGlob;
             std::vector<encVar*> encGlob;
-            for (Module::global_iterator gi = M.global_begin(), ge = M.global_end();
-                 gi != ge; ++gi) {
-                // Loop over all global variables
+
+            // Loop over all global variables
+            Module::global_iterator gi = M.global_begin(), ge = M.global_end();
+            do {    
                 GlobalVariable* gv = &(*gi);
-                //errs() << "Global var " << gv->getName();
-                std::string::size_type str_idx = gv->getName().str().find(".str.");
+
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Global var " << gv->getName() << '\n' ) ;
+                //std::string::size_type str_idx = gv->getName().str().find(".str.");
                 std::string section(gv->getSection());
-                
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "StringObfuscationPass: Global variable found : " << gv->getName() << '\n' );
+    
                 // Let's encode the static ones
                 if (gv->isConstant() && gv->hasInitializer() && isa<ConstantDataSequential>(gv->getInitializer()) && section != "llvm.metadata" && section.find("__objc_methname") == std::string::npos) {
                     ++GlobalsEncoded;
-                    //errs() << " is constant";
+                    DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - is constant." << '\n' );
                     
                     // Duplicate global variable
                     GlobalVariable *dynGV = new GlobalVariable(M,
@@ -67,14 +73,34 @@ namespace llvm {
                     
                     Constant *initializer = gv->getInitializer();
                     ConstantDataSequential *cdata = dyn_cast<ConstantDataSequential>(initializer);
+                    bool performEncrypt = true ;
+
                     if (cdata) {
                         const char *orig = cdata->getRawDataValues().data();
                         unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
-                        
+
+                        DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - value : " << orig << " / len : " << len << '\n' );
+                
+                        // Verify if printable characters
+                        for ( unsigned i = 0 ; i < len ; ++i ) {
+                            if( i < len - 1 || '\0' != orig[i] ) {
+                                if( 0 == isprint(orig[i]) && 0 == isspace(orig[i]) ) {
+                                    DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - not elligible (non-printable characters according to isprint())." << "\n" );
+                                    performEncrypt = false ;
+                                    break ;
+                                }
+                            }
+                        }
+                    }
+
+                    if ( cdata && performEncrypt ) {
+                        const char *orig = cdata->getRawDataValues().data();
+                        unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
+
                         encVar *cur = new encVar();
                         cur->var = dynGV;
                         cur->key = llvm::cryptoutils->get_uint8_t();
-                        
+
                         // casting away const is undef. behavior in C++
                         // TODO a clean implementation would retrieve the data, generate a new constant
                         // set the correct type, and copy the data over.
@@ -93,7 +119,7 @@ namespace llvm {
                         // Prepare to add decode function for this variable
                         encGlob.push_back(cur);
                     } else {
-                        // errs() << " undhandled!";
+                        DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - undhandled!\n"  ) ;
                         // just copying default initializer for now
                         dynGV->setInitializer(initializer);
                     }
@@ -101,14 +127,14 @@ namespace llvm {
                     // redirect references to new GV and remove old one
                     gv->replaceAllUsesWith(dynGV);
                     toDelConstGlob.push_back(gv);
-                    
                 }
-            }
+
+                gi ++ ;
+            } while( gi != ge ) ;
             
             // actuallte delete marked globals
             for (unsigned i = 0, e = toDelConstGlob.size(); i != e; ++i)
                 toDelConstGlob[i]->eraseFromParent();
-            
             
             // create code to initialize global variables at runtime
             addDecodeFunction(&M, &encGlob);
@@ -131,7 +157,7 @@ namespace llvm {
             random_stream >> random_str;
             StringObfDecodeRandomName++;
             Constant* c = mod->getOrInsertFunction(".datadiv_decode" + random_str, FuncTy);
-            //errs() << "Function name is " << ".datadiv_decode" + random_str << "\n";
+            DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Function name is " << ".datadiv_decode" + random_str << "\n" ) ;
             Function* fdecode = cast<Function>(c);
             fdecode->setCallingConv(CallingConv::C);
             
@@ -144,7 +170,7 @@ namespace llvm {
             for (unsigned i = 0, e = gvars->size(); i != e; ++i) {
                 GlobalVariable *gvar = (*gvars)[i]->var;
                 char key = (*gvars)[i]->key;
-                //errs() << "Adding code for " << gvar->getName() << '\n';
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Adding code for " << gvar->getName() << '\n' ) ;
                 
                 Constant *init = gvar->getInitializer();
                 ConstantDataSequential *cdata = dyn_cast<ConstantDataSequential>(init);
@@ -159,6 +185,7 @@ namespace llvm {
                 BasicBlock* label_for_end = BasicBlock::Create(mod->getContext(), "for.end", fdecode, 0);
                 
                 ICmpInst* cmp = new ICmpInst(*label_entry, ICmpInst::ICMP_EQ, const_len, const_0, "cmp");
+
                 BranchInst::Create(label_for_end, label_for_body, cmp, label_entry);
                 
                 // Block for.body (label_for_body)
@@ -182,12 +209,14 @@ namespace llvm {
                 // Decode
                 ConstantInt* const_key = ConstantInt::get(mod->getContext(), APInt(8, key));
                 //BinaryOperator* int8_dec = BinaryOperator::Create(Instruction::Add, int8_20, const_key, "sub", label_for_body);
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Creating XOR BinaryOperator for " << gvar->getName() << '\n' ) ;
                 BinaryOperator* int8_dec = BinaryOperator::Create(Instruction::Xor, int8_20, const_key, "xor", label_for_body);
                 // Store
                 StoreInst* void_21 = new StoreInst(int8_dec, ptr_arrayidx, false, label_for_body);
                 void_21->setAlignment(1);
                 
                 // Adjust loop counter
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Creating INC BinaryOperator for " << gvar->getName() << '\n' ) ;
                 BinaryOperator* int32_inc = BinaryOperator::Create(Instruction::Add, int32_i, const_1, "inc", label_for_body);
                 
                 ICmpInst* int1_cmp = new ICmpInst(*label_for_body, ICmpInst::ICMP_EQ, int32_inc, const_len, "cmp");
