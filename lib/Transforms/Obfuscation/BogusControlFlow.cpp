@@ -11,31 +11,31 @@
 // It adds bogus flow to a given basic block this way:
 //
 // Before :
-// 	         		     entry
-//      			       |
-//  	    	  	 ______v______
-//   	    		|   Original  |
-//   	    		|_____________|
-//             		       |
+// 	         	 	     entry
+//      		  	       |
+//  	      	   ______v______
+//   	      		|   Original  |
+//   	      		|_____________|
+//             	       |
 // 		        	       v
 //		        	     return
 //
 // After :
 //           		     entry
-//             		       |
-//            		   ____v_____
-//      			  |condition*| (false)
+//             	       |
+//            	   ____v_____
+//      			    |condition*| (false)
 //           		  |__________|----+
 //           		 (true)|          |
-//             		       |          |
+//             	       |          |
 //           		 ______v______    |
-// 		        +-->|   Original* |   |
-// 		        |   |_____________| (true)
-// 		        |   (false)|    !-----------> return
-// 		        |    ______v______    |
-// 		        |   |   Altered   |<--!
-// 		        |   |_____________|
-// 		        |__________|
+// 		      +-->|   Original* |   |
+// 		      |   |_____________| (true)
+// 		      |   (false)|    !-----------> return
+// 		      |    ______v______    |
+// 		      |   |   Altered   |<--!
+// 		      |   |_____________|
+// 		      |__________|
 //
 //  * The results of these terminator's branch's conditions are always true, but these predicates are
 //    opacificated. For this, we declare two global values: x and y, and replace the FCMP_TRUE
@@ -128,17 +128,18 @@ namespace {
       // Check if the percentage is correct
       if (ObfTimes <= 0) {
         errs()<<"BogusControlFlow application number -bcf_loop=x must be x > 0";
-		return false;
+		    return false;
       }
 
       // Check if the number of applications is correct
       if ( !((ObfProbRate > 0) && (ObfProbRate <= 100)) ) {
         errs()<<"BogusControlFlow application basic blocks percentage -bcf_prob=x must be 0 < x <= 100";
-		return false;
+		    return false;
       }
-      // If fla annotations
-      if(toObfuscate(flag,&F,"bcf")) {
-        if (isInvoke(&F)) {
+
+      // If bcf annotations
+      if( toObfuscate(flag,&F,"bcf") ) {
+        if( false == isInvoke( &F ) ) {
           bogus(F);
           doF(*F.getParent());
           return true;
@@ -150,12 +151,13 @@ namespace {
 
     bool isInvoke(Function *f) {
       for (Function::iterator i = f->begin(); i != f->end(); ++i) {
-          BasicBlock *bb = &*i;
-          if (isa<InvokeInst>(bb->getTerminator())) {
-              return false;
-          }
+        BasicBlock *bb = &*i;
+        if (isa<InvokeInst>(bb->getTerminator())) {
+            return true ;
+        }
       }
-      return true;
+      
+      return false ;
     }
 
     void bogus(Function &F) {
