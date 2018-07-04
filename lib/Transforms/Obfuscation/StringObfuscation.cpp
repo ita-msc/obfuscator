@@ -92,9 +92,8 @@ namespace llvm {
                                 }
                             }
                         }
-                    }
 
-                    if ( cdata && performEncrypt ) {
+                        if ( performEncrypt ) {
                         const char *orig = cdata->getRawDataValues().data();
                         unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
 
