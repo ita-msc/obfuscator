@@ -296,7 +296,7 @@ namespace llvm {
 }
 
 char StringObfuscationPass::ID = 0;
-static RegisterPass<StringObfuscationPass> X("GVDiv", "Global variable (i.e., const char*) diversification pass", false, true);
+static RegisterPass<StringObfuscationPass> X("GVDiv", "Global variable (i.e., const char*) diversification pass");
 
 Pass * llvm::createStringObfuscation(bool flag) {
     return new StringObfuscationPass(flag);
