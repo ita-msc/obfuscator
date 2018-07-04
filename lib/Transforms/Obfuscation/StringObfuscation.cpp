@@ -165,7 +165,7 @@ namespace llvm {
             random_stream >> random_str;
             StringObfDecodeRandomName++;
             Constant* c = mod->getOrInsertFunction(".datadiv_decode" + random_str, FuncTy);
-            DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Function name is " << ".datadiv_decode" + random_str << "\n" ) ;
+            DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Function name is " << ".datadiv_decode" + random_str << "\n" ) ;
             Function* fdecode = cast<Function>(c);
             fdecode->setCallingConv(CallingConv::C);
             
