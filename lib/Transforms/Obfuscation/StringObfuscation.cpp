@@ -94,31 +94,31 @@ namespace llvm {
                         }
 
                         if ( performEncrypt ) {
-                        const char *orig = cdata->getRawDataValues().data();
-                        unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
+                            const char *orig = cdata->getRawDataValues().data();
+                            unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
 
-                        encVar *cur = new encVar();
-                        cur->var = dynGV;
-                        cur->key = llvm::cryptoutils->get_uint8_t();
+                            encVar *cur = new encVar();
+                            cur->var = dynGV;
+                            cur->key = llvm::cryptoutils->get_uint8_t();
 
-                        // casting away const is undef. behavior in C++
-                        // TODO a clean implementation would retrieve the data, generate a new constant
-                        // set the correct type, and copy the data over.
-                        //char *encr = new char[len];
-                        //Constant *initnew = ConstantDataArray::getString(M.getContext(), encr, true);
-                        char *encr = (char*)orig; // ugly but works for now
-                        
-                        // Simple xor encoding
+                            // casting away const is undef. behavior in C++
+                            // TODO a clean implementation would retrieve the data, generate a new constant
+                            // set the correct type, and copy the data over.
+                            //char *encr = new char[len];
+                            //Constant *initnew = ConstantDataArray::getString(M.getContext(), encr, true);
+                            char *encr = (char*)orig; // ugly but works for now
+                            
+                            // Simple xor encoding
                             for ( unsigned i = 0; i != len; ++i ) {
                                 encr[i] = orig[i]^cur->key ;
-                        }
-                        
-                        // FIXME Second part of the unclean hack.
-                        dynGV->setInitializer(initializer);
-                        
-                        // Prepare to add decode function for this variable
+                            }
+                            
+                            // FIXME Second part of the unclean hack.
+                            dynGV->setInitializer(initializer);
+                            
+                            // Prepare to add decode function for this variable
                             DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - " << cur->var->getName() <<  " is being pushed back to encGlob vector.\n" ) ;
-                        encGlob.push_back(cur);
+                            encGlob.push_back(cur);
                         }
 
                     } else {
