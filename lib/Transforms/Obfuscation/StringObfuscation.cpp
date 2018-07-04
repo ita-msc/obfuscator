@@ -109,8 +109,8 @@ namespace llvm {
                         char *encr = (char*)orig; // ugly but works for now
                         
                         // Simple xor encoding
-                        for (unsigned i = 0; i != len; ++i) {
-                            encr[i] = orig[i]^cur->key;
+                            for ( unsigned i = 0; i != len; ++i ) {
+                                encr[i] = orig[i]^cur->key ;
                         }
                         
                         // FIXME Second part of the unclean hack.
@@ -119,6 +119,8 @@ namespace llvm {
                         // Prepare to add decode function for this variable
                             DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - " << cur->var->getName() <<  " is being pushed back to encGlob vector.\n" ) ;
                         encGlob.push_back(cur);
+                        }
+
                     } else {
                         DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - undhandled!\n"  ) ;
                         // just copying default initializer for now
