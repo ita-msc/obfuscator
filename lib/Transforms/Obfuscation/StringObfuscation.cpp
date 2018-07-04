@@ -122,14 +122,18 @@ namespace llvm {
                         }
 
                     } else {
-                        DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - undhandled!\n"  ) ;
+
+                        DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - undhandled!\n"  ) ;
                         // just copying default initializer for now
                         dynGV->setInitializer(initializer);
+
                     }
                     
                     // redirect references to new GV and remove old one
                     gv->replaceAllUsesWith(dynGV);
                     toDelConstGlob.push_back(gv);
+                } else {
+                    DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - is not constant." << '\n' );
                 }
 
                 gi ++ ;
