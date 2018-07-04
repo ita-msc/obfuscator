@@ -175,10 +175,10 @@ namespace llvm {
             BasicBlock* label_entry = BasicBlock::Create(mod->getContext(), "entry", fdecode);
             
             
-            for (unsigned i = 0, e = gvars->size(); i != e; ++i) {
-                GlobalVariable *gvar = (*gvars)[i]->var;
-                char key = (*gvars)[i]->key;
-                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Adding code for " << gvar->getName() << '\n' ) ;
+            for ( encVar* encVar : *gvars ) {
+                GlobalVariable *gvar = encVar->var;
+                char key = encVar->key;
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Adding code for " << gvar->getName() << '\n' ) ;
                 
                 Constant *init = gvar->getInitializer();
                 ConstantDataSequential *cdata = dyn_cast<ConstantDataSequential>(init);
