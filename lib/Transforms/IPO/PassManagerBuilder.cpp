@@ -443,11 +443,6 @@ void PassManagerBuilder::populateModulePassManager(
   // Allow forcing function attributes as a debugging and tuning aid.
   MPM.add(createForceFunctionAttrsLegacyPass());
 
-  MPM.add(createSplitBasicBlock(Split));
-  MPM.add(createBogus(BogusControlFlow));
-  MPM.add(createFlattening(Flattening));
-  MPM.add(createStringObfuscation(StringObf));
-
   // If all optimizations are disabled, just run the always-inline pass and,
   // if enabled, the function merging pass.
   if (OptLevel == 0) {
@@ -746,6 +741,11 @@ void PassManagerBuilder::populateModulePassManager(
   MPM.add(createCFGSimplificationPass());
 
   MPM.add(createSubstitution(Substitution));
+  MPM.add(createSplitBasicBlock(Split));
+  MPM.add(createBogus(BogusControlFlow));
+  MPM.add(createFlattening(Flattening));
+  MPM.add(createStringObfuscation(StringObf));
+
   addExtensionsToPM(EP_OptimizerLast, MPM);
 }
 
