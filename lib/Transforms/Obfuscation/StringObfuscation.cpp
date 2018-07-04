@@ -140,8 +140,9 @@ namespace llvm {
             } while( gi != ge ) ;
             
             // actuallte delete marked globals
-            for (unsigned i = 0, e = toDelConstGlob.size(); i != e; ++i)
-                toDelConstGlob[i]->eraseFromParent();
+            //for (unsigned i = 0, e = toDelConstGlob.size(); i != e; ++i)
+            for( GlobalVariable* gvToDel : toDelConstGlob )
+                gvToDel->eraseFromParent();
             
             // create code to initialize global variables at runtime
             addDecodeFunction(&M, &encGlob);
