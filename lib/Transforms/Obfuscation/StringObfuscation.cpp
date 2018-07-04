@@ -217,14 +217,14 @@ namespace llvm {
                 // Decode
                 ConstantInt* const_key = ConstantInt::get(mod->getContext(), APInt(8, key));
                 //BinaryOperator* int8_dec = BinaryOperator::Create(Instruction::Add, int8_20, const_key, "sub", label_for_body);
-                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Creating XOR BinaryOperator for " << gvar->getName() << '\n' ) ;
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Creating XOR BinaryOperator for " << gvar->getName() << '\n' ) ;
                 BinaryOperator* int8_dec = BinaryOperator::Create(Instruction::Xor, int8_20, const_key, "xor", label_for_body);
                 // Store
                 StoreInst* void_21 = new StoreInst(int8_dec, ptr_arrayidx, false, label_for_body);
                 void_21->setAlignment(1);
                 
                 // Adjust loop counter
-                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Creating INC BinaryOperator for " << gvar->getName() << '\n' ) ;
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Creating INC BinaryOperator for " << gvar->getName() << '\n' ) ;
                 BinaryOperator* int32_inc = BinaryOperator::Create(Instruction::Add, int32_i, const_1, "inc", label_for_body);
                 
                 ICmpInst* int1_cmp = new ICmpInst(*label_for_body, ICmpInst::ICMP_EQ, int32_inc, const_len, "cmp");
