@@ -50,15 +50,15 @@ namespace llvm {
             do {    
                 GlobalVariable* gv = &(*gi);
 
-                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "Global var " << gv->getName() << '\n' ) ;
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Global var " << gv->getName() << '\n' ) ;
                 //std::string::size_type str_idx = gv->getName().str().find(".str.");
                 std::string section(gv->getSection());
-                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "StringObfuscationPass: Global variable found : " << gv->getName() << '\n' );
+                DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Global variable found : " << gv->getName() << '\n' );
     
                 // Let's encode the static ones
                 if (gv->isConstant() && gv->hasInitializer() && isa<ConstantDataSequential>(gv->getInitializer()) && section != "llvm.metadata" && section.find("__objc_methname") == std::string::npos) {
                     ++GlobalsEncoded;
-                    DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - is constant." << '\n' );
+                    DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - is constant." << '\n' );
                     
                     // Duplicate global variable
                     GlobalVariable *dynGV = new GlobalVariable(M,
@@ -73,19 +73,20 @@ namespace llvm {
                     
                     Constant *initializer = gv->getInitializer();
                     ConstantDataSequential *cdata = dyn_cast<ConstantDataSequential>(initializer);
+
                     bool performEncrypt = true ;
 
                     if (cdata) {
                         const char *orig = cdata->getRawDataValues().data();
                         unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
 
-                        DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - value : " << orig << " / len : " << len << '\n' );
+                        DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - value : " << orig << " / len : " << len << '\n' );
                 
                         // Verify if printable characters
                         for ( unsigned i = 0 ; i < len ; ++i ) {
                             if( i < len - 1 || '\0' != orig[i] ) {
                                 if( 0 == isprint(orig[i]) && 0 == isspace(orig[i]) ) {
-                                    DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - not elligible (non-printable characters according to isprint())." << "\n" );
+                                    DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - not elligible : non-printable characters according to isprint()/isspace()." << "\n" );
                                     performEncrypt = false ;
                                     break ;
                                 }
@@ -117,6 +118,7 @@ namespace llvm {
                         dynGV->setInitializer(initializer);
                         
                         // Prepare to add decode function for this variable
+                            DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - " << cur->var->getName() <<  " is being pushed back to encGlob vector.\n" ) ;
                         encGlob.push_back(cur);
                     } else {
                         DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "  - undhandled!\n"  ) ;
