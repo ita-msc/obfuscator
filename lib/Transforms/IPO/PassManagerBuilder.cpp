@@ -471,6 +471,11 @@ void PassManagerBuilder::populateModulePassManager(
     }
 
     MPM.add(createSubstitution(Substitution));
+    MPM.add(createSplitBasicBlock(Split));
+    MPM.add(createBogus(BogusControlFlow));
+    MPM.add(createFlattening(Flattening));
+    MPM.add(createStringObfuscation(StringObf));
+    
     addExtensionsToPM(EP_EnabledOnOptLevel0, MPM);
 
     // Rename anon globals to be able to export them in the summary.
