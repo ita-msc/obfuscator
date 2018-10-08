@@ -59,8 +59,10 @@ cd ..
 # Launch the build
 
 ```
-mkcd obfuscator.build
-cmake -G "Unix Makefiles" -DLLDB_CODESIGN_IDENTITY='' ../llvm
+sudo mkdir obfuscator.build
+sudo chown sds:sds obfuscator.build
+cd obfuscator.build
+cmake -G "Unix Makefiles" -DLLDB_CODESIGN_IDENTITY='' ../obfuscator.src
 make -j7
 ```
 
