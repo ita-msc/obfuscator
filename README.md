@@ -2,7 +2,7 @@
 
 Please have a look at the [wiki](https://github.com/obfuscator-llvm/obfuscator/wiki)!
 
-__**/!\** WARNING__ : This Branch / Project is attempt to port `obfuscator-llvm/obfuscator` to LLVM-7.0.0
+/!\ WARNING : This Branch / Project is attempt to port `obfuscator-llvm/obfuscator` to LLVM-7.0.0
 Current (official) version: [LLVM-4.0](https://github.com/obfuscator-llvm/obfuscator/tree/llvm-4.0)
 
 You can cite Obfuscator-LLVM using the following Bibtex entry:
