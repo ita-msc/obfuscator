@@ -86,5 +86,42 @@ cmake -G "Unix Makefiles" -DLLDB_CODESIGN_IDENTITY='' ../obfuscator.src
 make -j7
 ```
 
+Following flags can be added to the `cmake` command line
+
+```
 -DLLVM_ENABLE_ASSERTIONS=ON 
 -DCMAKE_BUILD_TYPE=Release
+```
+
+### Special case for macOS & Xcode
+
+From : https://afnan.io/2018-10-01/using-the-latest-llvm-release-on-macos/
+
+
+```
+cmake -G Ninja \
+  -DLLDB_CODESIGN_IDENTITY='' \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DLLVM_CREATE_XCODE_TOOLCHAIN=On \
+  -DLLVM_ENABLE_ASSERTIONS=ON \
+  -DCMAKE_BUILD_TYPE=Release \
+  ../obfuscator-llvm-7.0.1.src
+```
+
+I also recommend using `Ninja` rather than  `make` to build LLVM, because it will build significantly faster.
+
+Now that you have the XCode toolchain, you can place it in the Toolchains directory in XCode.
+
+```
+mv LLVM7.0.0.xctoolchain /Applications/Xcode.app/Contents/Developer/Toolchains
+```
+
+You need to instruct XCode to actually use the toolchain. You can do so in two ways: from your environment variables, and through the XCode app itself.
+
+To set it through an environment variable:
+
+```
+export TOOLCHAINS="LLVM7.0.0"
+```
+
+In Xcode.app, you can select `Xcode -> Toolchains -> org.llvm.7.0.0` in the menu.
