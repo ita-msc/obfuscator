@@ -84,7 +84,7 @@ Using `cmake` & `make`
 sudo mkdir obfuscator-llvm-7.0.1.build
 sudo chown sds:sds obfuscator-llvm-7.0.1.build
 cd obfuscator-llvm-7.0.1.build
-cmake -G "Unix Makefiles" -DLLDB_CODESIGN_IDENTITY='' ../obfuscator-llvm-7.0.1.build
+cmake -G "Unix Makefiles" -DLLDB_CODESIGN_IDENTITY='' ../obfuscator-llvm-7.0.1.src
 make -j7
 ```
 
