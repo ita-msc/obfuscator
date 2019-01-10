@@ -99,12 +99,11 @@ Following flags can be added to the `cmake` command line
 
 From : https://afnan.io/2018-10-01/using-the-latest-llvm-release-on-macos/
 
-
 ```
 cmake -G Ninja \
   -DLLDB_CODESIGN_IDENTITY='' \
-	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
-	-DLLVM_CREATE_XCODE_TOOLCHAIN=On \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DLLVM_CREATE_XCODE_TOOLCHAIN=On \
   -DLLVM_ENABLE_ASSERTIONS=ON \
   -DCMAKE_BUILD_TYPE=Release \
   ../obfuscator-llvm-7.0.1.src
