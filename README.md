@@ -94,6 +94,7 @@ Following flags can be added to the `cmake` command line
 -DLLVM_ENABLE_ASSERTIONS=ON 
 -DCMAKE_BUILD_TYPE=Release
 ```
+
 ### Special case for macOS & Xcode
 
 From : https://afnan.io/2018-10-01/using-the-latest-llvm-release-on-macos/
