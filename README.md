@@ -107,6 +107,7 @@ cmake -G Ninja \
   -DLLVM_ENABLE_ASSERTIONS=ON \
   -DCMAKE_BUILD_TYPE=Release \
   ../obfuscator-llvm-7.0.1.src
+ninja -j5
 ```
 
 I also recommend using `Ninja` rather than  `make` to build LLVM, because it will build significantly faster.
@@ -114,15 +115,19 @@ I also recommend using `Ninja` rather than  `make` to build LLVM, because it wil
 Now that you have the XCode toolchain, you can place it in the Toolchains directory in XCode.
 
 ```
-mv LLVM7.0.0.xctoolchain /Applications/Xcode.app/Contents/Developer/Toolchains
+sudo ninja install-xcode-toolchain
 ```
+
+The toolchain is generated and installed in `/usr/local/Toolchains/LLVM7.0.1.xctoolchain`
 
 You need to instruct XCode to actually use the toolchain. You can do so in two ways: from your environment variables, and through the XCode app itself.
 
 To set it through an environment variable:
 
 ```
-export TOOLCHAINS="LLVM7.0.0"
+export TOOLCHAINS="LLVM7.0.1"
 ```
 
-In Xcode.app, you can select `Xcode -> Toolchains -> org.llvm.7.0.0` in the menu.
+In Xcode.app, you can select `Xcode -> Toolchains -> org.llvm.7.0.1` in the menu.
+
+
