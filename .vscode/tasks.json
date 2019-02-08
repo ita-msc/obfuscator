@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "rm -rf * ; rm -rf .*",
+            "options": {
+                "cwd": "${workspaceFolder}/../obfuscator-llvm-7.0.1.build"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "configure",
+            "type": "shell",
+            "command": "pwd && cmake -G \"Unix Makefiles\" -DLLDB_CODESIGN_IDENTITY='' -DLLVM_ENABLE_ASSERTIONS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo ../obfuscator-llvm-7.0.1.src",
+            "options": {
+                "cwd": "${workspaceFolder}/../obfuscator-llvm-7.0.1.build"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "make -j5",
+            "options": {
+                "cwd": "${workspaceFolder}/../obfuscator-llvm-7.0.1.build"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "env" : {
+        "myDefaultIncludePath": [
+            "/usr/include",
+            "/usr/local/include",
+            "${workspaceFolder}/include",
+            "${workspaceFolder}/../obfuscator-llvm-7.0.1.build/include"
+        ],
+        "myCompilerPath": "/usr/bin/clang"
+    },
+    "configurations": [
+        {
+            "name": "Linux64",
+            "intelliSenseMode": "clang-x64",
+            "includePath": [ "${myDefaultIncludePath}" ],
+            "compilerPath": "${myCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "browse": {
+                "path": [ "${workspaceFolder}" ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}
