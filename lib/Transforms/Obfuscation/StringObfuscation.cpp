@@ -47,7 +47,7 @@ namespace llvm {
 
             // Loop over all global variables
             Module::global_iterator gi = M.global_begin(), ge = M.global_end();
-            do {    
+            while( gi != ge ) {
                 GlobalVariable* gv = &(*gi);
 
                 DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Global var " << gv->getName() << '\n' ) ;
@@ -80,12 +80,12 @@ namespace llvm {
                         const char *orig = cdata->getRawDataValues().data();
                         unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
 
-                        DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - value : " << orig << " / len : " << len << '\n' );
+                         DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - value : " << orig << " / len : " << len << '\n' );
                 
                         // Verify if printable characters
                         for ( unsigned i = 0 ; i < len ; ++i ) {
                             if( i < len - 1 || '\0' != orig[i] ) {
-                                if( 0 == isprint(orig[i]) && 0 == isspace(orig[i]) ) {
+                                if(  0 == isprint(orig[i]) && 0 == isspace(orig[i]) ) {
                                     DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - not elligible : non-printable characters according to isprint()/isspace()." << "\n" );
                                     performEncrypt = false ;
                                     break ;
@@ -93,7 +93,18 @@ namespace llvm {
                             }
                         }
 
+                        // linking symbols filter
+			// work in progress
+
+                        const char *origName = gv->getName().data();
+
+                        if ( origName[0] == '_' && origName[1] == 'Z' && origName[2] == 'T' && origName[3] == 'S'  ) {
+                        	DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "  - not elligible : this string is supposed to be a linking symbol" << "\n" );
+                        	performEncrypt = false ;
+                        }
+
                         if ( performEncrypt ) {
+
                             const char *orig = cdata->getRawDataValues().data();
                             unsigned int len = cdata->getNumElements()*cdata->getElementByteSize();
 
@@ -137,7 +148,7 @@ namespace llvm {
                 }
 
                 gi ++ ;
-            } while( gi != ge ) ;
+            } //while( gi != ge ) ;
             
             // actuallte delete marked globals
             //for (unsigned i = 0, e = toDelConstGlob.size(); i != e; ++i)
@@ -174,34 +185,32 @@ namespace llvm {
             ConstantInt* const_1 = ConstantInt::get(mod->getContext(), APInt(32, 1));
             BasicBlock* label_entry = BasicBlock::Create(mod->getContext(), "entry", fdecode);
             
-            
+            if ( gvars)
             for ( encVar* encVar : *gvars ) {
-                GlobalVariable *gvar = encVar->var;
+            	GlobalVariable *gvar = encVar->var;
                 char key = encVar->key;
                 DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Adding code for " << gvar->getName() << '\n' ) ;
-                
+
                 Constant *init = gvar->getInitializer();
                 ConstantDataSequential *cdata = dyn_cast<ConstantDataSequential>(init);
-                
                 unsigned len = cdata->getNumElements()*cdata->getElementByteSize();
-                
+
                 // Add per-GV local decode code:
                 // for len(globVar): globVar[i] = globVar[i]^key
-                
+
                 ConstantInt* const_len = ConstantInt::get(mod->getContext(), APInt(32, len));
                 BasicBlock* label_for_body = BasicBlock::Create(mod->getContext(), "for.body", fdecode, 0);
                 BasicBlock* label_for_end = BasicBlock::Create(mod->getContext(), "for.end", fdecode, 0);
-                
+
                 ICmpInst* cmp = new ICmpInst(*label_entry, ICmpInst::ICMP_EQ, const_len, const_0, "cmp");
 
                 BranchInst::Create(label_for_end, label_for_body, cmp, label_entry);
-                
+
                 // Block for.body (label_for_body)
                 Argument* fwdref_18 = new Argument(IntegerType::get(mod->getContext(), 32));
                 PHINode* int32_i = PHINode::Create(IntegerType::get(mod->getContext(), 32), 2, "i.09", label_for_body);
                 int32_i->addIncoming(fwdref_18, label_for_body);
                 int32_i->addIncoming(const_0, label_entry);
-                
                 CastInst* int64_idxprom = new ZExtInst(int32_i, IntegerType::get(mod->getContext(), 64), "idxprom", label_for_body);
                 LoadInst* ptr_19 = new LoadInst(gvar, "", false, label_for_body);
                 ptr_19->setAlignment(8);
@@ -222,25 +231,22 @@ namespace llvm {
                 // Store
                 StoreInst* void_21 = new StoreInst(int8_dec, ptr_arrayidx, false, label_for_body);
                 void_21->setAlignment(1);
-                
                 // Adjust loop counter
                 DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Creating INC BinaryOperator for " << gvar->getName() << '\n' ) ;
                 BinaryOperator* int32_inc = BinaryOperator::Create(Instruction::Add, int32_i, const_1, "inc", label_for_body);
-                
+
                 ICmpInst* int1_cmp = new ICmpInst(*label_for_body, ICmpInst::ICMP_EQ, int32_inc, const_len, "cmp");
                 BranchInst::Create(label_for_end, label_for_body, int1_cmp, label_for_body);
-                
+
                 // Resolve Forward References
                 fwdref_18->replaceAllUsesWith(int32_inc); delete fwdref_18;
-                
                 // adjust for next iteration
                 label_entry = label_for_end;
             }
-            
+
             // Block for.end (label_for_end)
             ReturnInst::Create(mod->getContext(), label_entry);
-            
-            
+
             // Lets add our function to the constructors
             std::vector<Type*>StructTy_4_fields;
             StructTy_4_fields.push_back(IntegerType::get(mod->getContext(), 32));
@@ -249,19 +255,16 @@ namespace llvm {
                                                        /*Result=*/Type::getVoidTy(mod->getContext()),
                                                        /*Params=*/FuncTy_6_args,
                                                        /*isVarArg=*/false);
-            
             PointerType* PointerTy_5 = PointerType::get(FuncTy_6, 0);
             StructTy_4_fields.push_back(PointerTy_5);
             StructType *StructTy_4 = StructType::get(mod->getContext(), StructTy_4_fields, /*isPacked=*/false);
             ArrayType* ArrayTy_3 = ArrayType::get(StructTy_4, 1);
-            
             GlobalVariable* gvar_array_llvm_global_ctors = NULL;
             for (Module::global_iterator gi = mod->global_begin(); gi != mod->global_end(); ++gi)
             {
                 if(gi->getName() == "llvm.global_ctors")
                     gvar_array_llvm_global_ctors = &*gi;
             }
-            
             std::vector<Constant*> const_array_10_elems;
             std::vector<Constant*> const_struct_11_fields;
             ConstantInt* const_int32_16max = ConstantInt::get(mod->getContext(), APInt(32, StringRef("65535"), 10));
@@ -284,10 +287,11 @@ namespace llvm {
             else
             {
                 ConstantArray* initer =  dyn_cast<ConstantArray>(gvar_array_llvm_global_ctors->getInitializer());
+                if( initer )
                 for (Use &f : initer->operands())
                     const_array_10_elems.push_back(dyn_cast<Constant>(&*f));
-                const_array_10 = ConstantArray::get(ArrayTy_3, const_array_10_elems);
-                gvar_array_llvm_global_ctors->setInitializer(const_array_10);
+                //const_array_10 = ConstantArray::get(ArrayTy_3, const_array_10_elems);
+                //gvar_array_llvm_global_ctors->setInitializer(const_array_10);
             }
         }
         
