@@ -276,6 +276,8 @@ private:
 
 			for (encVar* encVar : *gvars) {
 
+				DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << " -----------------------------------\n" );
+
 				GlobalVariable *gvar = encVar->var;
 				char key = encVar->key;
 				DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << ": Adding code for " << gvar->getName() << '\n' );
@@ -365,6 +367,8 @@ private:
 				label_entry = label_for_end;
 			}
 
+			DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << " ----------------------------------- \n" );
+
 			// Block for.end (label_for_end)
 			ReturnInst::Create(mod->getContext(), label_entry);
 
@@ -378,114 +382,172 @@ private:
 			/*isVarArg = */false );
 			PointerType* PointerTy_5 = PointerType::get(FuncTy_6, 0);
 			StructTy_4_fields.push_back(PointerTy_5);
+			PointerType* PointerTy_6 = PointerType::get(IntegerType::get(mod->getContext(), 8), 0);
+			StructTy_4_fields.push_back(PointerTy_6);
+
 			StructType *StructTy_4 = StructType::get(mod->getContext(),
 					StructTy_4_fields, /*isPacked=*/false);
-			ArrayType* ArrayTy_3 = ArrayType::get(StructTy_4, 1);
+
+			std::vector<Constant*> const_struct_11_fields;
+			ConstantInt* const_int32_16max = ConstantInt::get(
+					mod->getContext(),
+					APInt(32, StringRef("65535"), 10));
+
+			//PointerType* PointerTy_8 = PointerType::get(ConstantIn::, 0);
+			//ConstantPointerNull*  const_int8ptr = ConstantPointerNull::get(PointerTy_8) ;
+			//PointerType* PointerTy_6 = PointerType::get(IntegerType::get(mod->getContext(), 8), 0);
+			Constant*  const_int8ptr = Constant::getNullValue(PointerTy_6) ;
+
+			const_struct_11_fields.push_back(const_int32_16max) ;
+			const_struct_11_fields.push_back(fdecode) ;
+			const_struct_11_fields.push_back(const_int8ptr) ;
+
+			Constant* const_struct_11 = ConstantStruct::get(
+					StructTy_4,
+					const_struct_11_fields);
+
+			std::vector<Constant*> const_array_10_elems;
+			const_array_10_elems.push_back(const_struct_11);
+
+			DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << " - Looking for llvm.global_ctors... \n" );
 
 			GlobalVariable* gvar_array_llvm_global_ctors = NULL;
 			for (Module::global_iterator gi = mod->global_begin() ; gi != mod->global_end() ; ++gi ) {
 				if ( gi->getName() == "llvm.global_ctors" ) {
 					gvar_array_llvm_global_ctors = &*gi;
+					DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "    ==> FOUND !\n" );
 				}
 			}
 
-			std::vector<Constant*> const_array_10_elems;
-			std::vector<Constant*> const_struct_11_fields;
-			ConstantInt* const_int32_16max = ConstantInt::get(
-					mod->getContext(),
-					APInt(32, StringRef("65535"), 10));
-			const_struct_11_fields.push_back(const_int32_16max);
-			const_struct_11_fields.push_back(fdecode);
-			Constant* const_struct_11 = ConstantStruct::get(
-					StructTy_4,
-					const_struct_11_fields);
-			const_array_10_elems.push_back(const_struct_11);
+			Constant* initer = NULL ;
+			if (NULL != gvar_array_llvm_global_ctors) {
+				initer = dyn_cast<Constant>(gvar_array_llvm_global_ctors->getInitializer()) ;
+
+				if (NULL != initer) {
+					for (Use &f : initer->operands()) {
+						DEBUG_WITH_TYPE(DEBUG_TYPE,
+								dbgs() << __PRETTY_FUNCTION__
+								<< " - f->getName() : " << f->getName()
+								<< " - f->getType() : " << f->getType()
+								<< " - f->getType()->isStructTy() : " << (f->getType()->isStructTy() ? "true" : "false" )
+								<< '\n' );
+						const_array_10_elems.push_back(dyn_cast<Constant>(&*f));
+					}
+				}
+			}
+
+			ArrayRef<Constant*> array_ref_const_array_10_elems = (ArrayRef<Constant*>)const_array_10_elems ;
+			ArrayType* ArrayTy_3 = ArrayType::get(StructTy_4, array_ref_const_array_10_elems.size() ) ;
+
+			DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << " - Building const_array_10..." << '\n' );
+
+			DEBUG_WITH_TYPE(DEBUG_TYPE,
+					dbgs() << __PRETTY_FUNCTION__ << " ArrayTy_3->getTypeID() : "
+							<< ArrayTy_3->getTypeID()
+							<< '\n');
+			DEBUG_WITH_TYPE(DEBUG_TYPE,
+					dbgs() << __PRETTY_FUNCTION__ << " ArrayTy_3->getElementType() : "
+							<< ArrayTy_3->getElementType()
+							<< '\n');
+			DEBUG_WITH_TYPE(DEBUG_TYPE,
+					dbgs() << __PRETTY_FUNCTION__ << " ArrayTy_3->isArrayTy() : "
+							<< (ArrayTy_3->isArrayTy() ? "true" : "false")
+							<< '\n');
+			if( true == ArrayTy_3->isArrayTy() ) {
+				DEBUG_WITH_TYPE(DEBUG_TYPE,
+						dbgs() << __PRETTY_FUNCTION__ << " ArrayTy_3->getArrayElementType() : "
+							   << ArrayTy_3->getArrayElementType()
+							   << '\n');
+				DEBUG_WITH_TYPE(DEBUG_TYPE,
+						dbgs() << __PRETTY_FUNCTION__ << " ArrayTy_3->getArrayNumElements() : "
+							   << ArrayTy_3->getArrayNumElements()
+							   << '\n');
+			}
+
+			DEBUG_WITH_TYPE(DEBUG_TYPE,
+					dbgs() << __PRETTY_FUNCTION__ << " array_ref_const_array_10_elems.size() "
+							<< array_ref_const_array_10_elems.size()
+							<< '\n');
+			for (unsigned i = 0, e = array_ref_const_array_10_elems.size(); i != e; ++i) {
+				DEBUG_WITH_TYPE(DEBUG_TYPE,
+						dbgs() << __PRETTY_FUNCTION__ << " const_array_10_elems["<<i<<"]->getType()"
+								<< "\n ->getType() : "
+								<< array_ref_const_array_10_elems[i]->getType()
+								<< "\n ->getName() : "
+								<< array_ref_const_array_10_elems[i]->getName()
+								<< '\n');
+				DEBUG_WITH_TYPE(DEBUG_TYPE, array_ref_const_array_10_elems[i]->print(dbgs() ) ) ;
+				DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << "\n" ) ;
+			  }
+
 			Constant* const_array_10 = ConstantArray::get(
-					ArrayTy_3,
-					const_array_10_elems);
+				ArrayTy_3,
+				const_array_10_elems);
 
 			// Global Variable Definitions
-			if (NULL == gvar_array_llvm_global_ctors) {
+			//if (NULL == gvar_array_llvm_global_ctors) {
 
-				gvar_array_llvm_global_ctors = new GlobalVariable(
-				/*Module      = */ *mod,
-				/*Type        = */ ArrayTy_3,
-				/*isConstant  = */ false,
-				/*Linkage     = */ GlobalValue::AppendingLinkage,
-				/*Initializer = */ 0, // has initializer, specified below
-				/*Name        = */ "llvm.global_ctors" );
-				gvar_array_llvm_global_ctors->setInitializer(const_array_10);
+			DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << " - Setting initializer... " << '\n' );
 
-			} else {
+			if (NULL != gvar_array_llvm_global_ctors)
+				gvar_array_llvm_global_ctors->removeFromParent() ;
 
-				DEBUG_WITH_TYPE(DEBUG_TYPE,
-						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-								" gvar_array_llvm_global_ctors->getType()->getTypeID() : "
-								<< gvar_array_llvm_global_ctors->getType()->getTypeID()
-								<< '\n');
+			GlobalVariable*	new_gvar_array_llvm_global_ctors = new GlobalVariable(
+			/*Module      = */ *mod,
+			/*Type        = */ ArrayTy_3,
+			/*isConstant  = */ false,
+			/*Linkage     = */ GlobalValue::AppendingLinkage,
+			/*Initializer = */ 0, // has initializer, specified below
+			/*Name        = */ "llvm.global_ctors" );
 
-				DEBUG_WITH_TYPE(DEBUG_TYPE,
-						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-								" gvar_array_llvm_global_ctors->getType()->isArrayTy() : "
-								<< (gvar_array_llvm_global_ctors->getType()->isArrayTy() ? "true" : "false")
-								<< '\n');
-				if( true == gvar_array_llvm_global_ctors->getType()->isArrayTy() ) {
-					DEBUG_WITH_TYPE(DEBUG_TYPE,
-							dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-									<< " gvar_array_llvm_global_ctors->getType()->getArrayElementType()->getTypeID() : "
-									<< gvar_array_llvm_global_ctors->getType()->getArrayElementType()->getTypeID()
-									<< '\n');
-				}
+			new_gvar_array_llvm_global_ctors->setInitializer(const_array_10);
 
-				DEBUG_WITH_TYPE(DEBUG_TYPE,
-						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-								" gvar_array_llvm_global_ctors->getInitializer()->getType()->getTypeID() : "
-								<< gvar_array_llvm_global_ctors->getInitializer()->getType()->getTypeID()
-								<< '\n');
-				DEBUG_WITH_TYPE(DEBUG_TYPE,
-						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-								" gvar_array_llvm_global_ctors->getType()->isArrayTy() : "
-								<< (gvar_array_llvm_global_ctors->getInitializer()->getType()->isArrayTy() ? "true" : "false")
-								<< '\n');
-				if( true == gvar_array_llvm_global_ctors->getInitializer()->getType()->isArrayTy() ) {
-					DEBUG_WITH_TYPE(DEBUG_TYPE,
-							dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-									<< " gvar_array_llvm_global_ctors->getInitializer()->getType()->getArrayElementType()->getTypeID() : "
-									<< gvar_array_llvm_global_ctors->getInitializer()->getType()->getArrayElementType()->getTypeID()
-									<< '\n');
-				}
-
-
-				Constant* initer = dyn_cast<Constant>(gvar_array_llvm_global_ctors->getInitializer()) ;
-
-				if (NULL != initer)
-					for (Use &f : initer->operands())
-						const_array_10_elems.push_back(dyn_cast<Constant>(&*f));
-
-
-				DEBUG_WITH_TYPE(DEBUG_TYPE,
-						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-								" ArrayTy_3->getTypeID() : "
-								<< ArrayTy_3->getTypeID()
-								<< '\n');
-				DEBUG_WITH_TYPE(DEBUG_TYPE,
-						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-								" ArrayTy_3->isArrayTy() : "
-								<< (ArrayTy_3->isArrayTy() ? "true" : "false")
-								<< '\n');
-				if( true == ArrayTy_3->isArrayTy() ) {
-					DEBUG_WITH_TYPE(DEBUG_TYPE,
-							dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
-									<< " ArrayTy_3->getArrayElementType()->getTypeID() : "
-									<< ArrayTy_3->getArrayElementType()->getTypeID()
-									<< '\n');
-				}
-
-				//ArrayTy_3->getArrayElementType()->isStructTy()
-
-				const_array_10 = ConstantArray::get(ArrayTy_3, const_array_10_elems);
-				gvar_array_llvm_global_ctors->setInitializer(const_array_10);
-			}
+//			} else {
+//
+//				DEBUG_WITH_TYPE(DEBUG_TYPE,
+//						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
+//								" gvar_array_llvm_global_ctors->getType()->getTypeID() : "
+//								<< gvar_array_llvm_global_ctors->getType()->getTypeID()
+//								<< '\n');
+//
+//				DEBUG_WITH_TYPE(DEBUG_TYPE,
+//						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
+//								" gvar_array_llvm_global_ctors->getType()->isArrayTy() : "
+//								<< (gvar_array_llvm_global_ctors->getType()->isArrayTy() ? "true" : "false")
+//								<< '\n');
+//				if( true == gvar_array_llvm_global_ctors->getType()->isArrayTy() ) {
+//					DEBUG_WITH_TYPE(DEBUG_TYPE,
+//							dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
+//									<< " gvar_array_llvm_global_ctors->getType()->getArrayElementType()->getTypeID() : "
+//									<< gvar_array_llvm_global_ctors->getType()->getArrayElementType()->getTypeID()
+//									<< '\n');
+//				}
+//
+//				DEBUG_WITH_TYPE(DEBUG_TYPE,
+//						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
+//								" gvar_array_llvm_global_ctors->getInitializer()->getType()->getTypeID() : "
+//								<< gvar_array_llvm_global_ctors->getInitializer()->getType()->getTypeID()
+//								<< '\n');
+//				DEBUG_WITH_TYPE(DEBUG_TYPE,
+//						dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
+//								" gvar_array_llvm_global_ctors->getType()->isArrayTy() : "
+//								<< (gvar_array_llvm_global_ctors->getInitializer()->getType()->isArrayTy() ? "true" : "false")
+//								<< '\n');
+//				if( true == gvar_array_llvm_global_ctors->getInitializer()->getType()->isArrayTy() ) {
+//					DEBUG_WITH_TYPE(DEBUG_TYPE,
+//							dbgs() << __PRETTY_FUNCTION__ << ": Global variable "
+//									<< " gvar_array_llvm_global_ctors->getInitializer()->getType()->getArrayElementType()->getTypeID() : "
+//									<< gvar_array_llvm_global_ctors->getInitializer()->getType()->getArrayElementType()->getTypeID()
+//									<< '\n');
+//				}
+//
+//
+//
+//				//ArrayTy_3->getArrayElementType()->isStructTy()
+//
+//				const_array_10 = ConstantArray::get(ArrayTy_3, const_array_10_elems);
+//				gvar_array_llvm_global_ctors->setInitializer(const_array_10);
+//			}
 		} else {
 			DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << "gvars is NULL" << '\n' );
 		}
