@@ -123,10 +123,14 @@ public:
 
 					++GlobalsEncoded;
 
+					std::string gv_name = gv->getName() ;
+
+					gv->setName(gv_name + "_old" ) ;
+
 					// Duplicate global variable
 					GlobalVariable *dynGV = new GlobalVariable(M,
 							gv->getType()->getElementType(), !(gv->isConstant()),
-							gv->getLinkage(), (Constant*) 0, gv->getName(),
+							gv->getLinkage(), (Constant*) 0, gv_name,
 							(GlobalVariable*) 0, gv->getThreadLocalMode(),
 							gv->getType()->getAddressSpace());
 					// dynGV->copyAttributesFrom(gv);
@@ -235,9 +239,13 @@ public:
 		DEBUG_WITH_TYPE(DEBUG_TYPE, dbgs() << __PRETTY_FUNCTION__ << " -----------------------------------\n" );
 
 		// create code to initialize global variables at runtime
-		addDecodeFunction(&M, &encGlob);
+		if( false == encGlob.empty() ) {
+			addDecodeFunction(&M, &encGlob);
 
-		return true;
+			return true;
+		} else {
+			return false ;
+		}
 	}
 
 private:
