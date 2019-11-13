@@ -66,8 +66,8 @@ bool Flattening::flatten(Function *f) {
   // END OF SCRAMBLER
 
   // Lower switch
-  FunctionPass *lower = createLowerSwitchPass();
-  lower->runOnFunction(*f);
+//  FunctionPass *lower = createLowerSwitchPass();
+//  lower->runOnFunction(*f);
 
   // Save all original BB
   for (Function::iterator i = f->begin(); i != f->end(); ++i) {
